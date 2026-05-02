@@ -14,7 +14,7 @@ export interface UserState {
   user: TUser | null;
 }
 
-const initialState: UserState = {
+export const initialState: UserState = {
   init: false,
   loading: false,
   user: null
@@ -36,6 +36,7 @@ export const userSlice = createSlice({
   },
   selectors: {
     selectUser: (state) => state.user,
+    selectUserName: (state) => state.user?.name,
     selectInit: (state) => state.init,
     selectLoading: (state) => state.loading
   },
@@ -97,6 +98,7 @@ export const userSlice = createSlice({
 });
 
 export const { setInit, setLoading, setUser } = userSlice.actions;
-export const { selectUser, selectInit, selectLoading } = userSlice.selectors;
+export const { selectUser, selectUserName, selectInit, selectLoading } =
+  userSlice.selectors;
 
 export default userSlice.reducer;

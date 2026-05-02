@@ -3,7 +3,8 @@ import {
   Route,
   useNavigate,
   useLocation,
-  useMatch
+  useMatch,
+  Outlet
 } from 'react-router-dom';
 import { useEffect } from 'react';
 
@@ -29,6 +30,13 @@ import { getUser } from '../../services/user/user-actions';
 import '../../index.css';
 import styles from './app.module.css';
 
+const Layout = () => (
+  <>
+    <AppHeader />
+    <Outlet />
+  </>
+);
+
 const App = () => {
   /** TODO: взять переменные из стора */
 
@@ -43,7 +51,7 @@ const App = () => {
   useEffect(() => {
     dispatch(getIngredients());
     dispatch(getUser());
-  }, []);
+  }, [dispatch]);
 
   const isIngredientsLoading = useSelector(
     (state: RootState) => state.ingredients.loading
@@ -53,10 +61,12 @@ const App = () => {
   );
   const error = null;
 
+  const handleModalClose = () => navigate(-1);
+
   return (
     <div className={styles.app}>
       <Routes location={background || location}>
-        <Route path={'/'} element={<AppHeader />}>
+        <Route element={<Layout />}>
           <Route
             path={'/'}
             element={
@@ -130,7 +140,19 @@ const App = () => {
           />
           <Route path={'*'} element={<NotFound404 />} />
           <Route path={'/feed/:number'} element={<OrderInfo />} />
-          <Route path={'/ingredients/:id'} element={<IngredientDetails />} />
+          <Route
+            path='/ingredients/:id'
+            element={
+              <div className={styles.detailPageWrap}>
+                <p
+                  className={`text text_type_main-large ${styles.detailHeader}`}
+                >
+                  Детали ингредиента
+                </p>
+                <IngredientDetails />
+              </div>
+            }
+          />
           <Route
             path={'/profile/orders/:number'}
             element={
@@ -141,17 +163,13 @@ const App = () => {
           />
         </Route>
       </Routes>
+
       {background && (
         <Routes>
           <Route
             path={'/feed/:number'}
             element={
-              <Modal
-                title={`#${feedNumber}`}
-                onClose={function (): void {
-                  navigate(-1);
-                }}
-              >
+              <Modal title={`#${feedNumber}`} onClose={handleModalClose}>
                 <OrderInfo />
               </Modal>
             }
@@ -159,12 +177,7 @@ const App = () => {
           <Route
             path={'/ingredients/:id'}
             element={
-              <Modal
-                title={'Описание ингредиента'}
-                onClose={function (): void {
-                  navigate(-1);
-                }}
-              >
+              <Modal title={'Описание ингредиента'} onClose={handleModalClose}>
                 <IngredientDetails />
               </Modal>
             }
@@ -173,12 +186,7 @@ const App = () => {
             path={'/profile/orders/:number'}
             element={
               <ProtectedRoute>
-                <Modal
-                  title={`#${orderNumber}`}
-                  onClose={function (): void {
-                    navigate(-1);
-                  }}
-                >
+                <Modal title={`#${orderNumber}`} onClose={handleModalClose}>
                   <OrderInfo />
                 </Modal>
               </ProtectedRoute>

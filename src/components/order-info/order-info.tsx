@@ -17,6 +17,7 @@ export const OrderInfo: FC = () => {
   );
 
   const dispatch = useDispatch();
+
   useEffect(() => {
     dispatch(getOrderByNumber(Number(number)));
   }, [dispatch, number]);

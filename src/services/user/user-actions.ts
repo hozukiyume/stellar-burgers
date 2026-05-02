@@ -7,7 +7,7 @@ import {
   TLoginData,
   TRegisterData,
   updateUserApi
-} from '@api';
+} from '../../utils/burger-api';
 import { deleteCookie, setCookie } from '../../utils/cookie';
 
 export const loginUser = createAsyncThunk(
@@ -32,10 +32,11 @@ export const registerUser = createAsyncThunk(
 
 export const getUser = createAsyncThunk('user/getUser', () => getUserApi());
 
-export const logoutUser = createAsyncThunk('user/logoutUser', () => {
-  logoutApi();
+export const logoutUser = createAsyncThunk('user/logoutUser', async () => {
+  await logoutApi();
   deleteCookie('accessToken');
   localStorage.removeItem('refreshToken');
+  return true;
 });
 
 export const updateUser = createAsyncThunk('user/updateUser', updateUserApi);

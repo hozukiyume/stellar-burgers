@@ -1,16 +1,19 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+
 import {
   getFeedsApi,
   getOrdersApi,
   getOrderByNumberApi,
   orderBurgerApi
-} from '@api';
+} from '../../utils/burger-api';
+
 import {
   TIngredient,
   TConstructorIngredient,
   TOrder,
   TOrdersData
 } from '@utils-types';
+
 import { v4 as uuidv4 } from 'uuid';
 
 export type TActiveOrder = {
@@ -18,13 +21,14 @@ export type TActiveOrder = {
   ingredients: TConstructorIngredient[];
 };
 
-const initialState: {
+export const initialState: {
   orderLoading: boolean;
   feedLoading: boolean;
   historyLoading: boolean;
   current: TActiveOrder;
   orderData: TOrder | null;
   orderByNumber: TOrder | null;
+  orderError: string | null;
   history: TOrdersData;
   feed: TOrdersData;
 } = {
@@ -37,6 +41,7 @@ const initialState: {
   },
   orderData: null,
   orderByNumber: null,
+  orderError: null,
   history: {
     orders: [],
     total: 0,
@@ -59,10 +64,7 @@ export const getOrderByNumber = createAsyncThunk(
   (number: number) => getOrderByNumberApi(number)
 );
 
-export const getFeeds = createAsyncThunk('orders/getFeeds', async () => {
-  const data = await getFeedsApi();
-  return data;
-});
+export const getFeeds = createAsyncThunk('orders/getFeeds', getFeedsApi);
 
 export const getOrders = createAsyncThunk('orders/getOrders', () =>
   getOrdersApi()
@@ -92,7 +94,7 @@ export const orderSlice = createSlice({
     },
     deleteIngredient: (state, { payload }) => {
       state.current.ingredients = state.current.ingredients.filter(
-        (item) => item.id !== payload.id
+        (item) => item.id !== payload
       );
     },
     shiftIngredient: (
@@ -128,16 +130,23 @@ export const orderSlice = createSlice({
     builder.addCase(orderBurger.rejected, (state) => {
       state.orderLoading = false;
     });
+
     builder.addCase(getOrderByNumber.pending, (state) => {
       state.orderLoading = true;
+      state.orderByNumber = null;
+      state.orderError = null;
     });
     builder.addCase(getOrderByNumber.fulfilled, (state, { payload }) => {
       state.orderLoading = false;
       state.orderByNumber = payload.orders[0];
+      state.orderError = null;
     });
-    builder.addCase(getOrderByNumber.rejected, (state) => {
+    builder.addCase(getOrderByNumber.rejected, (state, action) => {
       state.orderLoading = false;
+      state.orderByNumber = null;
+      state.orderError = action.error?.message || 'Ошибка загрузки заказа';
     });
+
     builder.addCase(getFeeds.pending, (state) => {
       state.feedLoading = true;
     });
@@ -148,6 +157,7 @@ export const orderSlice = createSlice({
     builder.addCase(getFeeds.rejected, (state) => {
       state.feedLoading = false;
     });
+
     builder.addCase(getOrders.pending, (state) => {
       state.historyLoading = true;
     });
